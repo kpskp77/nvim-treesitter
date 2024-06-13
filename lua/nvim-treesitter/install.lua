@@ -399,7 +399,7 @@ local function run_install(cache_folder, install_folder, lang, repo, with_sync, 
 
   ---@type Command[]
   local command_list = {}
-  if not from_local_path then
+  if not from_local_path and not configs.get_parser_build_from_cache() then
     vim.list_extend(command_list, { shell.select_install_rm_cmd(cache_folder, project_name) })
     vim.list_extend(
       command_list,
@@ -448,7 +448,7 @@ local function run_install(cache_folder, install_folder, lang, repo, with_sync, 
       cmd = reattach_if_possible_fn(lang, true),
     },
   })
-  if not from_local_path then
+  if not from_local_path and not configs.get_parser_keep_cache() then
     vim.list_extend(command_list, { shell.select_install_rm_cmd(cache_folder, project_name) })
   end
 
@@ -516,7 +516,7 @@ local function install(options)
       return api.nvim_err_writeln "Git is required on your system to run this command"
     end
 
-    local cache_folder, err = utils.get_cache_dir()
+    local cache_folder, err = configs.get_parser_cache_dir()
     if err then
       return api.nvim_err_writeln(err)
     end
