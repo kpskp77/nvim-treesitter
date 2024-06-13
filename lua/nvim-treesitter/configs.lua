@@ -15,6 +15,9 @@ local M = {}
 ---@field ignore_install string[]
 ---@field auto_install boolean
 ---@field parser_install_dir string|nil
+---@field parser_cache_dir string|nil
+---@field parser_build_from_cache boolean
+---@field parser_keep_cache boolean
 
 ---@type TSConfig
 local config = {
@@ -24,6 +27,9 @@ local config = {
   auto_install = false,
   ignore_install = {},
   parser_install_dir = nil,
+  parser_cache_dir = nil,
+  parser_build_from_cache = false,
+  parser_keep_cache = false,
 }
 
 -- List of modules that need to be setup on initialization.
@@ -415,6 +421,14 @@ function M.setup(user_data)
     config.parser_install_dir = vim.fn.expand(config.parser_install_dir, ":p")
   end
 
+  config.parser_cache_dir = user_data.parser_cache_dir or nil
+  if config.parser_cache_dir then
+    config.parser_cache_dir = vim.fn.expand(config.parser_cache_dir, ":p")
+  end
+
+  config.parser_build_from_cache = user_data.parser_build_from_cache or false
+  config.parser_keep_cache = user_data.parser_keep_cache or false
+
   config.auto_install = user_data.auto_install or false
   if config.auto_install then
     require("nvim-treesitter.install").setup_auto_install()
@@ -596,6 +610,23 @@ function M.get_parser_install_dir(folder_name)
       "' should be read/write (see README on how to configure an alternative install location)"
     )
   )
+end
+
+-- If parser_cache_dir is not nil is used or created.
+-- If parser_cache_dir is nil try the std data dir of the nvim first,
+-- and then try '/tmp'
+---@return string|nil, string|nil
+function M.get_parser_cache_dir()
+  local cache_dir = config.parser_cache_dir or utils.get_cache_dir()
+  return utils.create_or_reuse_writable_dir(cache_dir)
+end
+
+function M.get_parser_build_from_cache()
+  return config.parser_build_from_cache
+end
+
+function M.get_parser_keep_cache()
+  return config.parser_keep_cache or config.parser_build_from_cache
 end
 
 function M.get_parser_info_dir()
