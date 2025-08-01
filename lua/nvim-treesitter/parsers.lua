@@ -2233,7 +2233,7 @@ return {
   },
   systemverilog = {
     install_info = {
-      revision = 'b2c95d30954fbd3cf9be6d96a3ad82e023c2fa12',
+      revision = '8ed571a1196f4dfa5b5008804ded7955478b26eb',
       url = 'https://github.com/gmlarumbe/tree-sitter-systemverilog',
     },
     maintainers = { '@zhangwwpeng' },
