@@ -363,14 +363,16 @@ local function try_install_lang(lang, cache_dir, install_dir, generate)
     if repo.path then
       compile_location = fs.normalize(repo.path)
     else
-      local project_dir = fs.joinpath(cache_dir, project_name)
-      rmpath(project_dir)
+      if not config.install_offline() then
+        local project_dir = fs.joinpath(cache_dir, project_name)
+        rmpath(project_dir)
 
-      revision = revision or repo.branch or 'main'
+        revision = revision or repo.branch or 'main'
 
-      local err = do_download(logger, repo.url, project_name, cache_dir, revision, project_dir)
-      if err then
-        return err
+        local err = do_download(logger, repo.url, project_name, cache_dir, revision, project_dir)
+        if err then
+          return err
+        end
       end
       compile_location = fs.joinpath(cache_dir, project_name)
     end
@@ -432,7 +434,7 @@ local function try_install_lang(lang, cache_dir, install_dir, generate)
   end
 
   -- clean up
-  if repo and not repo.path then
+  if repo and not repo.path and not config.keep_cache() then
     rmpath(fs.joinpath(cache_dir, project_name))
     a.schedule()
   end
@@ -487,11 +489,7 @@ end
 local function install(languages, options)
   options = options or {}
 
-  local cache_dir = fs.normalize(fn.stdpath('cache'))
-  if not uv.fs_stat(cache_dir) then
-    fn.mkdir(cache_dir, 'p')
-  end
-
+  local cache_dir = config.get_cache_dir()
   local install_dir = config.get_install_dir('parser')
 
   local tasks = {} ---@type async.TaskFun[]

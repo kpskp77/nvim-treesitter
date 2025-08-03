@@ -8,6 +8,9 @@ M.tiers = { 'stable', 'unstable', 'unmaintained', 'unsupported' }
 ---@type TSConfig
 local config = {
   install_dir = vim.fs.joinpath(vim.fn.stdpath('data'), 'site'),
+  cache_dir = vim.fs.normalize(vim.fn.stdpath('cache')),
+  keep_cache = false,
+  install_offline = false,
 }
 
 ---Setup call for users to override configuration configurations.
@@ -17,6 +20,10 @@ function M.setup(user_data)
     if user_data.install_dir then
       user_data.install_dir = vim.fs.normalize(user_data.install_dir)
       vim.opt.runtimepath:prepend(user_data.install_dir)
+    end
+    if user_data.cache_dir then
+      user_data.cache_dir = vim.fs.normalize(user_data.cache_dir)
+      config.keep_cache = true
     end
     config = vim.tbl_deep_extend('force', config, user_data)
   end
@@ -37,6 +44,34 @@ function M.get_install_dir(dir_name)
     end
   end
   return dir
+end
+
+-- Returns the cache path for src code of parsers.
+-- If the specified directory does not exist, it is created.
+---@return string
+function M.get_cache_dir()
+  local dir = config.cache_dir
+
+  if not vim.uv.fs_stat(dir) then
+    local ok, err = pcall(vim.fn.mkdir, dir, 'p', '0755')
+    if not ok then
+      local log = require('nvim-treesitter.log')
+      log.error(err --[[@as string]])
+    end
+  end
+  return dir
+end
+
+-- Returns keep cache or not.
+---@return bool
+function M.keep_cache()
+  return config.keep_cache
+end
+
+-- Returns install offline or not.
+---@return bool
+function M.install_offline()
+  return config.install_offline
 end
 
 ---@param type 'queries'|'parsers'?
