@@ -24,6 +24,9 @@ local config = {
   auto_install = false,
   ignore_install = {},
   parser_install_dir = nil,
+  cache_dir = vim.fs.normalize(vim.fn.stdpath('cache')),
+  keep_cache = false,
+  install_offline = false,
 }
 
 -- List of modules that need to be setup on initialization.
@@ -414,6 +417,11 @@ function M.setup(user_data)
   if config.parser_install_dir then
     config.parser_install_dir = vim.fn.expand(config.parser_install_dir, ":p")
   end
+  if user_data.cache_dir then
+    config.cache_dir = vim.fs.normalize(user_data.cache_dir)
+    config.keep_cache = true
+  end
+  config.install_offline = user_data.install_offline or false
 
   config.auto_install = user_data.auto_install or false
   if config.auto_install then
@@ -611,6 +619,18 @@ function M.get_ensure_installed_parsers()
     return { config.ensure_installed }
   end
   return config.ensure_installed or {}
+end
+
+function M.get_cache_dir()
+  return config.cache_dir
+end
+
+function M.get_keep_cache()
+  return config.keep_cache
+end
+
+function M.get_install_offline()
+  return config.install_offline
 end
 
 return M
